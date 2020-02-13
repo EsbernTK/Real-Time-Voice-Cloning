@@ -8,7 +8,7 @@ from toolbox.utterance import Utterance
 import numpy as np
 import traceback
 import sys
-
+from scipy.io.wavfile import write
 
 # Use this directory structure for your datasets, or modify it to fit your needs
 recognized_datasets = [
@@ -178,6 +178,8 @@ class Toolbox:
         self.current_generated = (self.ui.selected_utterance.speaker_name, spec, breaks, None)
         self.ui.set_loading(0)
 
+
+
     def vocode(self):
         speaker_name, spec, breaks, _ = self.current_generated
         assert spec is not None
@@ -207,8 +209,10 @@ class Toolbox:
         breaks = [np.zeros(int(0.15 * Synthesizer.sample_rate))] * len(breaks)
         wav = np.concatenate([i for w, b in zip(wavs, breaks) for i in (w, b)])
 
-        # Play it
+
+        # Play it and save it
         wav = wav / np.abs(wav).max() * 0.97
+        write("generated_audio/temp.wav", Synthesizer.sample_rate, wav)
         self.ui.play(wav, Synthesizer.sample_rate)
 
         # Compute the embedding
@@ -226,6 +230,7 @@ class Toolbox:
         # Plot it
         self.ui.draw_embed(embed, name, "generated")
         self.ui.draw_umap_projections(self.utterances)
+
         
     def init_encoder(self):
         model_fpath = self.ui.current_encoder_fpath
